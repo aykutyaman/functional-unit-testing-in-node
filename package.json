@@ -16,11 +16,13 @@
   "license": "ISC",
   "devDependencies": {
     "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
     "istanbul": "^0.4.5",
     "mocha": "^5.2.0"
   },
   "dependencies": {
     "express": "^4.16.3",
-    "folktale": "^2.3.0"
+    "folktale": "^2.3.0",
+    "lodash": "^4.17.10"
   }
 }
