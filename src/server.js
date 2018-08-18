@@ -33,6 +33,36 @@ const mapFilesToAttachments = map(
 const renderSafe = curry((renderFunction, template, value) => (
   new Promise(resolve => resolve(renderFunction(template, value)))
 ));
+const getEmailService = config => (
+  config.has('emailService')
+    ? Just(config.get('emailService'))
+    : Nothing()
+);
+const createTransportObject = (host, port) => ({
+  host,
+  port,
+  secure: false,
+});
+const createEmailOptions = (from, to, subject, html, attachments) => ({
+  from,
+  to,
+  subject,
+  html,
+  attachments,
+});
+const getEmailServiceUnavailableError = () => (
+  new Error('Email service unavailable')
+);
+const createTransportMailer = curry((createTransportFunction, transportObject) => (
+  createTransportFunction(transportObject)
+));
+const sendEmailSafe = curry((sendEmailFunction, mailOptions) => (
+  new Promise((resolve, reject) => (
+    sendEmailFunction(mailOptions, (error, info) => (
+      error ? reject(error) : resolve(info)
+    ))
+  ))
+));
 
 const mainIsModule = (module, main) => main === module;
 
@@ -54,6 +84,12 @@ module.exports = {
   filterCleanFiles,
   mapFilesToAttachments,
   renderSafe,
+  getEmailService,
+  createTransportObject,
+  createEmailOptions,
+  getEmailServiceUnavailableError,
+  createTransportMailer,
+  sendEmailSafe,
 };
 
 startServerIfCommandline(require.main, module, app, 3000);

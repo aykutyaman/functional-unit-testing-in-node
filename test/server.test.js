@@ -1,5 +1,9 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
+const {
+  stubTrue,
+  stubFalse,
+} = require('lodash/fp');
 
 const { expect } = chai;
 chai.use(chaiAsPromised);
@@ -14,6 +18,12 @@ const {
   filterCleanFiles,
   mapFilesToAttachments,
   renderSafe,
+  getEmailService,
+  createTransportObject,
+  createEmailOptions,
+  getEmailServiceUnavailableError,
+  createTransportMailer,
+  sendEmailSafe,
 } = require('../src/server');
 
 
@@ -133,6 +143,49 @@ describe('src/server.js', () => {
       return expect(renderSafe(() => { throw new Error(); }, 'template', {})).to.be.rejected;
     });
   });
-  // getEmailService
-  // https://github.com/JesterXL/fp-node/blob/master/test/server.test.js
+  describe('getEmailService when called', () => {
+    // write `stubTrue` instead off `() => true`
+    const configStub = { has: stubTrue, get: () => 'yup' };
+    const configStubBad = { has: stubFalse };
+    it('should work if config has defined value found', () => {
+      expect(getEmailService(configStub).getOrElse('nope')).to.equal('yup');
+    });
+    it('should work if config has no defined value found', () => {
+      expect(getEmailService(configStubBad).getOrElse('nope')).to.equal('nope');
+    });
+  });
+  describe('createTransportObject object when called', () => {
+    it('should create a host', () => {
+      expect(createTransportObject('host', 'port').host).to.equal('host');
+    });
+    it('should crate a port', () => {
+      expect(createTransportObject('host', 'port').port).to.equal('port');
+    });
+  });
+  describe('createEmailOptions object when called', () => {
+    it('should create a host', () => {
+      expect(createEmailOptions('from', 'to', 'subject', 'html', []).from).to.equal('from');
+    });
+  });
+  describe('getEmailServiceUnavailableError when called', () => {
+    it('should create an error with a message', () => {
+      const error = getEmailServiceUnavailableError();
+      expect(error.message).to.equal('Email service unavailable');
+    });
+  });
+  describe('createTransportMailer when called', () => {
+    it('should work with good stubs', () => {
+      expect(createTransportMailer(stubTrue, {})).to.equal(true);
+    });
+  });
+  describe('sendEmailSafe when called', () => {
+    const sendEmailStub = (options, callback) => callback(undefined, 'info');
+    const sendEmailStubBad = (options, callback) => callback(new Error('dat boom'));
+    it('should work with good stubs', () => {
+      return expect(sendEmailSafe(sendEmailStub, {})).to.be.fulfilled;
+    });
+    it('should work with bad stubs', () => {
+      return expect(sendEmailSafe(sendEmailStubBad, {})).to.be.rejected;
+    });
+  });
 });
